@@ -37,7 +37,9 @@ public class AuthApplicationService {
                 0,
                 0,
                 null,
-                Instant.now()));
+                null,
+                null
+        ));
 
         return new AuthResult(tokenIssuer.issue(user.id()), userService.toSummary(user));
     }
