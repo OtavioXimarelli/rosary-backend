@@ -1,11 +1,19 @@
 package dev.ximarelli.rosary.backend.users;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.Instant;
 
+
+@Document(collection = "users")
 public record User(
-        String id,
+        @Id String id,
         String name,
-        String email,
+        @Indexed(unique = true) String email,
         String passwordHash,
         String avatarUrl,
         String bio,
@@ -13,7 +21,8 @@ public record User(
         int longestStreak,
         int totalCheckIns,
         Instant lastCheckIn,
-        Instant createdAt) {
+        @CreatedDate Instant createdAt,
+        @LastModifiedDate Instant updatedAt) {
 
     public User withProfile(String newName, String newAvatarUrl, String newBio) {
         return new User(
@@ -27,6 +36,7 @@ public record User(
                 longestStreak,
                 totalCheckIns,
                 lastCheckIn,
-                createdAt);
+                createdAt,
+                updatedAt);
     }
 }
