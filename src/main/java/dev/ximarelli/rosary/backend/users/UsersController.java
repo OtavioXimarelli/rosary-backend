@@ -1,14 +1,11 @@
 package dev.ximarelli.rosary.backend.users;
 
-import dev.ximarelli.rosary.backend.users.UserApplicationService;
-import dev.ximarelli.rosary.backend.users.UserProfile;
-import dev.ximarelli.rosary.backend.users.UserStats;
+import dev.ximarelli.rosary.backend.config.CurrentUser;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,28 +18,24 @@ public class UsersController {
     }
 
     @GetMapping("/users/me")
-    public UserProfile getMe(@RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return userService.getProfile(resolveUser(userId));
+    public UserProfile getMe(@CurrentUser String userId) {
+        return userService.getProfile(userId);
     }
 
     @GetMapping("/users/me/stats")
-    public UserStats getMyStats(@RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return userService.getStats(resolveUser(userId));
+    public UserStats getMyStats(@CurrentUser String userId) {
+        return userService.getStats(userId);
     }
 
     @PutMapping("/users/me")
     public UserProfile updateMe(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody UpdateUserRequest request) {
-        return userService.updateProfile(resolveUser(userId), request.name(), request.avatarUrl(), request.bio());
+        return userService.updateProfile(userId, request.name(), request.avatarUrl(), request.bio());
     }
 
     @GetMapping("/users/{id}")
     public UserProfile getById(@PathVariable String id) {
         return userService.getById(id);
-    }
-
-    private String resolveUser(String userId) {
-        return userId == null || userId.isBlank() ? "demo-user" : userId;
     }
 }

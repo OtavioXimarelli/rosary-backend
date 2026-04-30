@@ -1,12 +1,5 @@
 package dev.ximarelli.rosary.backend.checkins;
 
-import dev.ximarelli.rosary.backend.checkins.CheckInView;
-import dev.ximarelli.rosary.backend.checkins.CommentView;
-import dev.ximarelli.rosary.backend.checkins.UserCheckInStats;
-import dev.ximarelli.rosary.backend.checkins.CheckIn;
-import dev.ximarelli.rosary.backend.checkins.CheckInComment;
-import dev.ximarelli.rosary.backend.checkins.CheckInRepository;
-import dev.ximarelli.rosary.backend.checkins.MysteryType;
 import dev.ximarelli.rosary.backend.shared.PagedResult;
 import dev.ximarelli.rosary.backend.users.User;
 import dev.ximarelli.rosary.backend.users.UserRepository;
@@ -15,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,16 +39,17 @@ public class CheckInApplicationService {
                 new ArrayList<>(),
                 isPublic == null || isPublic,
                 prayerDuration,
-                Instant.now()));
+                Instant.now(),
+                null));
         return toView(saved, userId);
     }
 
     public PagedResult<CheckInView> getPublicFeed(int page, int limit, String viewerId) {
-        return page(checkInRepository.findPublic(), page, limit, viewerId);
+        return page(checkInRepository.findByIsPublicTrueOrderByCreatedAtDesc(), page, limit, viewerId);
     }
 
     public PagedResult<CheckInView> getUserCheckIns(String userId, int page, int limit) {
-        return page(checkInRepository.findByUser(userId), page, limit, userId);
+        return page(checkInRepository.findByUserIdOrderByCreatedAtDesc(userId), page, limit, userId);
     }
 
     public CheckInView getById(String id, String viewerId) {
@@ -63,13 +58,18 @@ public class CheckInApplicationService {
     }
 
     public CheckInView getToday(String userId) {
-        return checkInRepository.findByUserAndDay(userId, LocalDate.now(ZoneOffset.UTC))
+        Instant startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant endOfDay = startOfDay.plus(1, ChronoUnit.DAYS).minusNanos(1);
+        return checkInRepository
+                .findByUserIdAndCreatedAtBetweenOrderByCreatedAtDesc(userId, startOfDay, endOfDay)
+                .stream()
+                .findFirst()
                 .map(it -> toView(it, userId))
                 .orElse(null);
     }
 
     public UserCheckInStats getStats(String userId) {
-        List<CheckIn> all = checkInRepository.findByUser(userId);
+        List<CheckIn> all = checkInRepository.findByUserIdOrderByCreatedAtDesc(userId);
         int publicCount = (int) all.stream().filter(CheckIn::isPublic).count();
         return new UserCheckInStats(all.size(), publicCount);
     }
@@ -94,7 +94,8 @@ public class CheckInApplicationService {
                 current.comments(),
                 current.isPublic(),
                 current.prayerDuration(),
-                current.createdAt()));
+                current.createdAt(),
+                current.updatedAt()));
         return toView(updated, userId);
     }
 
@@ -116,7 +117,8 @@ public class CheckInApplicationService {
                 comments,
                 current.isPublic(),
                 current.prayerDuration(),
-                current.createdAt()));
+                current.createdAt(),
+                current.updatedAt()));
         return toView(updated, userId);
     }
 

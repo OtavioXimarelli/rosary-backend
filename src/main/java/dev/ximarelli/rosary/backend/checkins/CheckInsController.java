@@ -1,8 +1,6 @@
 package dev.ximarelli.rosary.backend.checkins;
 
-import dev.ximarelli.rosary.backend.checkins.CheckInApplicationService;
-import dev.ximarelli.rosary.backend.checkins.CheckInView;
-import dev.ximarelli.rosary.backend.checkins.UserCheckInStats;
+import dev.ximarelli.rosary.backend.config.CurrentUser;
 import dev.ximarelli.rosary.backend.shared.PagedResult;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,10 +27,10 @@ public class CheckInsController {
     @PostMapping("/checkins")
     @ResponseStatus(HttpStatus.CREATED)
     public CheckInView create(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody CreateCheckInRequest request) {
         return checkInService.create(
-                resolveUser(userId),
+                userId,
                 request.mystery(),
                 request.reflection(),
                 request.intentions(),
@@ -43,63 +40,59 @@ public class CheckInsController {
 
     @GetMapping("/checkins/feed")
     public PagedResult<CheckInView> getFeed(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int limit) {
-        return checkInService.getPublicFeed(page, limit, resolveUser(userId));
+            @RequestParam(defaultValue = "10") int limit) {
+        return checkInService.getPublicFeed(page, limit, userId);
     }
 
     @GetMapping("/checkins/today")
-    public Map<String, Object> getToday(@RequestHeader(value = "X-User-Id", required = false) String userId) {
-        CheckInView checkIn = checkInService.getToday(resolveUser(userId));
+    public Map<String, Object> getToday(@CurrentUser String userId) {
+        CheckInView checkIn = checkInService.getToday(userId);
         return Map.of("hasCheckedIn", checkIn != null, "checkIn", checkIn);
     }
 
     @GetMapping("/checkins/my")
     public PagedResult<CheckInView> getMine(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit) {
-        String resolved = resolveUser(userId);
-        return checkInService.getUserCheckIns(resolved, page, limit);
+        return checkInService.getUserCheckIns(userId, page, limit);
     }
 
     @GetMapping("/checkins/stats")
-    public UserCheckInStats getStats(@RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return checkInService.getStats(resolveUser(userId));
+    public UserCheckInStats getStats(@CurrentUser String userId) {
+        return checkInService.getStats(userId);
     }
 
     @GetMapping("/checkins/{id}")
     public CheckInView getById(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return checkInService.getById(id, resolveUser(userId));
+            @CurrentUser String userId) {
+        return checkInService.getById(id, userId);
     }
 
     @PostMapping("/checkins/{id}/amen")
-    public CheckInView toggleAmen(
+    public AmenCountResponse toggleAmen(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return checkInService.toggleAmen(id, resolveUser(userId));
+            @CurrentUser String userId) {
+        CheckInView updated = checkInService.toggleAmen(id, userId);
+        return new AmenCountResponse(updated.amenCount());
     }
 
     @PostMapping("/checkins/{id}/comments")
     public CheckInView addComment(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody AddCommentRequest request) {
-        return checkInService.addComment(id, resolveUser(userId), request.text());
+        return checkInService.addComment(id, userId, request.text());
     }
 
     @DeleteMapping("/checkins/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        checkInService.delete(id, resolveUser(userId));
-    }
-
-    private String resolveUser(String userId) {
-        return userId == null || userId.isBlank() ? "demo-user" : userId;
+            @CurrentUser String userId) {
+        checkInService.delete(id, userId);
     }
 }

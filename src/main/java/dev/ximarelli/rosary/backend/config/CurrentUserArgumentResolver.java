@@ -22,16 +22,23 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
 
         String authHeader = webRequest.getHeader("Authorization");
-        //SECURITY TODO: ADD A REAL JWT PARSING AND VALIDATION HERE
+        // SECURITY TODO: Replace placeholder token parsing with real JWT validation.
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7).trim();
             if (!token.isBlank()) {
+                if (token.startsWith("boilerplate-")) {
+                    String raw = token.substring("boilerplate-".length());
+                    int separator = raw.lastIndexOf('-');
+                    if (separator > 0) {
+                        return raw.substring(0, separator);
+                    }
+                }
                 return token;
             }
         }
 
-        // Fallback for development phase
+        // Fallback for development phase.
         String fallbackId = webRequest.getHeader("X-User-Id");
         return (fallbackId != null && !fallbackId.isBlank()) ? fallbackId : "demo-user";
 

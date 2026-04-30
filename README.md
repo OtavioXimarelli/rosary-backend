@@ -38,6 +38,7 @@ Implemented feature modules:
 - `users`
 - `checkins`
 - `prayers`
+- `journal`
 
 ## Boilerplate endpoint surface (matching previous backend)
 
@@ -65,5 +66,9 @@ Implemented feature modules:
 - `POST /api/prayers/{id}/pray`
 - `POST /api/prayers/{id}/answered`
 - `DELETE /api/prayers/{id}`
+- `POST /api/journal/entries`
+- `GET /api/journal/entries`
+- `PUT /api/journal/entries/{id}`
+- `DELETE /api/journal/entries/{id}`
 
 > For this boilerplate phase, authenticated routes use header `X-User-Id` (defaults to `demo-user`).

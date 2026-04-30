@@ -8,9 +8,5 @@ public record UserProfile(
         String email,
         String avatarUrl,
         String bio,
-        int currentStreak,
-        int longestStreak,
-        int totalCheckIns,
-        Instant lastCheckIn,
         Instant createdAt) {
 }

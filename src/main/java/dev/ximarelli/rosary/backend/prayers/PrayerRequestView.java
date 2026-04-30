@@ -1,10 +1,11 @@
 package dev.ximarelli.rosary.backend.prayers;
 
-import dev.ximarelli.rosary.backend.prayers.IntentionTag;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
 
 public record PrayerRequestView(
+        @JsonProperty("_id")
         String id,
         String userId,
         String userName,

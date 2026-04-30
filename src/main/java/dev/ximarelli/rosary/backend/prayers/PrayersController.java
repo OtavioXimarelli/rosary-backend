@@ -1,8 +1,6 @@
 package dev.ximarelli.rosary.backend.prayers;
 
-import dev.ximarelli.rosary.backend.prayers.PrayerApplicationService;
-import dev.ximarelli.rosary.backend.prayers.PrayerRequestView;
-import dev.ximarelli.rosary.backend.prayers.IntentionTag;
+import dev.ximarelli.rosary.backend.config.CurrentUser;
 import dev.ximarelli.rosary.backend.shared.PagedResult;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -12,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,52 +26,51 @@ public class PrayersController {
     @PostMapping("/prayers")
     @ResponseStatus(HttpStatus.CREATED)
     public PrayerRequestView create(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody CreatePrayerRequest request) {
-        return prayerService.create(resolveUser(userId), request.title(), request.description(), request.category());
+        return prayerService.create(userId, request.title(), request.description(), request.category());
     }
 
     @GetMapping("/prayers")
     public PagedResult<PrayerRequestView> findAll(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false) IntentionTag category) {
-        return prayerService.findAll(page, limit, category, resolveUser(userId));
+        return prayerService.findAll(page, limit, category, userId);
     }
 
     @GetMapping("/prayers/my")
     public PagedResult<PrayerRequestView> getMine(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit) {
-        String resolved = resolveUser(userId);
-        return prayerService.findMine(resolved, page, limit);
+        return prayerService.findMine(userId, page, limit);
     }
 
     @GetMapping("/prayers/testimonials")
     public PagedResult<PrayerRequestView> getTestimonials(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
-        return prayerService.testimonials(page, limit, resolveUser(userId));
+        return prayerService.testimonials(page, limit, userId);
     }
 
     @GetMapping("/prayers/{id}")
     public PrayerRequestView getById(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return prayerService.findById(id, resolveUser(userId));
+            @CurrentUser String userId) {
+        return prayerService.findById(id, userId);
     }
 
     @PutMapping("/prayers/{id}")
     public PrayerRequestView update(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody UpdatePrayerRequest request) {
         return prayerService.update(
                 id,
-                resolveUser(userId),
+                userId,
                 request.title(),
                 request.description(),
                 request.category(),
@@ -84,27 +80,23 @@ public class PrayersController {
     @PostMapping("/prayers/{id}/pray")
     public PrayerRequestView togglePray(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return prayerService.togglePrayingFor(id, resolveUser(userId));
+            @CurrentUser String userId) {
+        return prayerService.togglePrayingFor(id, userId);
     }
 
     @PostMapping("/prayers/{id}/answered")
     public PrayerRequestView markAnswered(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @CurrentUser String userId,
             @Valid @RequestBody MarkAnsweredRequest request) {
-        return prayerService.markAnswered(id, resolveUser(userId), request.testimonial());
+        return prayerService.markAnswered(id, userId, request.testimonial());
     }
 
     @DeleteMapping("/prayers/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable String id,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        prayerService.delete(id, resolveUser(userId));
-    }
-
-    private String resolveUser(String userId) {
-        return userId == null || userId.isBlank() ? "demo-user" : userId;
+            @CurrentUser String userId) {
+        prayerService.delete(id, userId);
     }
 }
