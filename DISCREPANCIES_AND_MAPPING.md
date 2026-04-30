@@ -1,5 +1,8 @@
 # Backend/Frontend Contract Discrepancies & Mapping Guide
 
+> Historical analysis snapshot from before contract alignment was finished.  
+> For current status, use `CONTRACT_CHECKLIST.md` and `CONTRACT_ALIGNMENT_SUMMARY.md`.
+
 This document details every mismatch between the frontend API contract and current backend implementation, along with recommended fixes.
 
 ---
