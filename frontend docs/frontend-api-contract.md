@@ -83,10 +83,10 @@ Response:
 Response:
 ```json
 {
-  "checkIns": [ { "...": "BackendCheckIn" } ],
+  "items": [ { "...": "BackendCheckIn" } ],
   "total": 42,
   "page": 1,
-  "totalPages": 5
+  "limit": 10
 }
 ```
 
@@ -104,7 +104,16 @@ Request:
 Response: updated `BackendCheckIn`.
 
 ### `GET /checkins/my?page=1&limit=20` (auth)
-Response: paged list of own check-ins (same item shape as feed).
+Response: paged list of own check-ins (same item shape as feed) using `{ items, total, page, limit }`.
+
+### `GET /checkins/stats` (auth)
+Response:
+```json
+{
+  "totalCheckIns": 55,
+  "publicCheckIns": 20
+}
+```
 
 ## Users
 
@@ -172,6 +181,16 @@ Item shape:
 }
 ```
 
+List endpoints under `/prayers` also use pagination in the canonical shape:
+```json
+{
+  "items": [ { "...": "PrayerItem" } ],
+  "total": 42,
+  "page": 1,
+  "limit": 20
+}
+```
+
 ## Journal (needed for full migration)
 
 ### `POST /journal/entries` (auth)
@@ -189,5 +208,15 @@ Entry shape:
   "tags": ["gratitude"],
   "intentions": "string",
   "mystery": "Mistérios Gozosos"
+}
+```
+
+Journal list response uses canonical pagination:
+```json
+{
+  "items": [ { "...": "JournalEntry" } ],
+  "total": 10,
+  "page": 1,
+  "limit": 20
 }
 ```
