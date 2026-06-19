@@ -10,13 +10,13 @@ import java.util.List;
 @Service
 public class JournalApplicationService {
 
-    private final JournalEntryRepository journalEntryRepository;
+    private final JournalEntityRepository journalEntityRepository;
 
-    public JournalApplicationService(JournalEntryRepository journalEntryRepository) {
-        this.journalEntryRepository = journalEntryRepository;
+    public JournalApplicationService(JournalEntityRepository journalEntityRepository) {
+        this.journalEntityRepository = journalEntityRepository;
     }
 
-    public JournalEntryView create(
+    public JournalEntityView create(
             String userId,
             Instant date,
             String content,
@@ -25,7 +25,7 @@ public class JournalApplicationService {
             String intentions,
             MysteryType mystery) {
         Instant now = Instant.now();
-        JournalEntry saved = journalEntryRepository.save(new JournalEntry(
+        JournalEntity saved = journalEntityRepository.save(new JournalEntity(
                 null,
                 userId,
                 date != null ? date : now,
@@ -39,8 +39,8 @@ public class JournalApplicationService {
         return toView(saved);
     }
 
-    public PagedResult<JournalEntryView> findByUser(String userId, Instant from, Instant to, int page, int limit) {
-        List<JournalEntry> filtered = journalEntryRepository.findByUserIdOrderByDateDesc(userId).stream()
+    public PagedResult<JournalEntityView> findByUser(String userId, Instant from, Instant to, int page, int limit) {
+        List<JournalEntity> filtered = journalEntityRepository.findByUserIdOrderByDateDesc(userId).stream()
                 .filter(entry -> from == null || !entry.date().isBefore(from))
                 .filter(entry -> to == null || !entry.date().isAfter(to))
                 .toList();
@@ -49,12 +49,12 @@ public class JournalApplicationService {
         int safeLimit = Math.max(limit, 1);
         int fromIndex = Math.min((safePage - 1) * safeLimit, filtered.size());
         int toIndex = Math.min(fromIndex + safeLimit, filtered.size());
-        List<JournalEntryView> items = filtered.subList(fromIndex, toIndex).stream().map(this::toView).toList();
+        List<JournalEntityView> items = filtered.subList(fromIndex, toIndex).stream().map(this::toView).toList();
 
         return new PagedResult<>(safePage, safeLimit, filtered.size(), items);
     }
 
-    public JournalEntryView update(
+    public JournalEntityView update(
             String id,
             String userId,
             Instant date,
@@ -63,12 +63,12 @@ public class JournalApplicationService {
             List<String> tags,
             String intentions,
             MysteryType mystery) {
-        JournalEntry current = journalEntryRepository.findById(id).orElseThrow();
+        JournalEntity current = journalEntityRepository.findById(id).orElseThrow();
         if (!current.userId().equals(userId)) {
             throw new IllegalArgumentException("Cannot update another user's journal entry");
         }
 
-        JournalEntry updated = journalEntryRepository.save(new JournalEntry(
+        JournalEntity updated = journalEntityRepository.save(new JournalEntity(
                 current.id(),
                 current.userId(),
                 date != null ? date : current.date(),
@@ -84,15 +84,15 @@ public class JournalApplicationService {
     }
 
     public void delete(String id, String userId) {
-        JournalEntry current = journalEntryRepository.findById(id).orElseThrow();
+        JournalEntity current = journalEntityRepository.findById(id).orElseThrow();
         if (!current.userId().equals(userId)) {
             throw new IllegalArgumentException("Cannot delete another user's journal entry");
         }
-        journalEntryRepository.deleteById(id);
+        journalEntityRepository.deleteById(id);
     }
 
-    private JournalEntryView toView(JournalEntry entry) {
-        return new JournalEntryView(
+    private JournalEntityView toView(JournalEntity entry) {
+        return new JournalEntityView(
                 entry.id(),
                 entry.date(),
                 entry.content(),

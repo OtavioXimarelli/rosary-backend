@@ -27,9 +27,9 @@ public class JournalController {
 
     @PostMapping("/journal/entries")
     @ResponseStatus(HttpStatus.CREATED)
-    public JournalEntryView create(
+    public JournalEntityView create(
             @CurrentUser String userId,
-            @Valid @RequestBody CreateJournalEntryRequest request) {
+            @Valid @RequestBody CreateJournalEntityRequest request) {
         return journalService.create(
                 userId,
                 request.date(),
@@ -41,7 +41,7 @@ public class JournalController {
     }
 
     @GetMapping("/journal/entries")
-    public PagedResult<JournalEntryView> getEntries(
+    public PagedResult<JournalEntityView> getEntries(
             @CurrentUser String userId,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to,
@@ -51,10 +51,10 @@ public class JournalController {
     }
 
     @PutMapping("/journal/entries/{id}")
-    public JournalEntryView update(
+    public JournalEntityView update(
             @PathVariable String id,
             @CurrentUser String userId,
-            @Valid @RequestBody UpdateJournalEntryRequest request) {
+            @Valid @RequestBody UpdateJournalEntityRequest request) {
         return journalService.update(
                 id,
                 userId,

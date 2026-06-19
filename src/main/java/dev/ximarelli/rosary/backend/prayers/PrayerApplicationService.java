@@ -53,7 +53,7 @@ public class PrayerApplicationService {
     }
 
     public PagedResult<PrayerRequestView> findMine(String userId, int page, int limit) {
-        return page(prayerRepository.findByUser(userId), page, limit, userId);
+        return page(prayerRepository.findByUserId(userId), page, limit, userId);
     }
 
     public PagedResult<PrayerRequestView> testimonials(int page, int limit, String viewerId) {

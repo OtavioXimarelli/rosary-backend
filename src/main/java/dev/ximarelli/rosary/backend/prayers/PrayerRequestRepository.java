@@ -1,14 +1,11 @@
 package dev.ximarelli.rosary.backend.prayers;
 
-import dev.ximarelli.rosary.backend.prayers.PrayerRequest;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface PrayerRequestRepository {
-    PrayerRequest save(PrayerRequest prayerRequest);
-    Optional<PrayerRequest> findById(String id);
-    List<PrayerRequest> findAll();
-    List<PrayerRequest> findByUser(String userId);
-    void deleteById(String id);
+@Repository
+public interface PrayerRequestRepository extends MongoRepository<PrayerRequest, String> {
+    List<PrayerRequest> findByUserId(String userId);
 }

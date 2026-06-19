@@ -214,7 +214,7 @@ Entry shape:
 Journal list response uses canonical pagination:
 ```json
 {
-  "items": [ { "...": "JournalEntry" } ],
+  "items": [ { "...": "JournalEntity" } ],
   "total": 10,
   "page": 1,
   "limit": 20
