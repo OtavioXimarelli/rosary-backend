@@ -1,0 +1,43 @@
+%% 03 — Backend Modules (Package-by-Feature — All MongoDB)
+graph TB
+  subgraph Backend["org.evangelizae.api — Modular Monolith (MongoDB only)"]
+    direction TB
+    APP["app<br/>EvangelizaeApiApplication.java:8<br/>Clock ApiConfiguration.java:13<br/>MongoConfig only"]
+    subgraph SHARED["shared"]
+      KERNEL["kernel<br/>UserId, ApiError.java<br/>zero Spring/Mongo deps"]
+      INFRA["infrastructure<br/>GlobalExceptionHandler.java:15<br/>Bearer/JWT, CORS ApiConfiguration.java:18<br/>RateLimit, Idempotency (Mongo TTL)"]
+    end
+    subgraph LITURGY["liturgy [MongoDB]"]
+      L_DOM["domain<br/>LiturgicalDay, Reading<br/>text XOR options CONTRACT_SCRAPER.md:145"]
+      L_APP["application<br/>ImportBatch ClientSession<br/>GetToday"]
+      L_IN["adapters/in<br/>internal + public controllers"]
+      L_OUT["adapters/out<br/>MongoLiturgicalDayDocument<br/>embedded readings"]
+    end
+    subgraph IDENTITY["identity [MongoDB]"]
+      I_DOM["domain<br/>User, RefreshSession"]
+      I_APP["application<br/>Register/Login/Refresh/OAuth/Delete"]
+      I_AD["adapters<br/>MongoUserRepository<br/>Jwt, Google, Email"]
+    end
+    subgraph PRAYER["prayer [MongoDB]"]
+      P_DOM["domain<br/>PrayerCompletion<br/>StreakCalculator"]
+      P_APP["application<br/>CheckIn + Stats"]
+    end
+    subgraph SOCIAL["social [MongoDB] — expansion"]
+      S_DOM["domain<br/>Follow, Like, Comment<br/>flexible docs"]
+      S_APP["application<br/>Follow/Like/Comment/Feed"]
+      S_OUT["adapters/out<br/>MongoFollow/Like/Comment"]
+    end
+    PLANS["spiritualplans [MongoDB]"]
+    MOD["moderation [MongoDB]"]
+  end
+
+  KERNEL --> LITURGY & IDENTITY & PRAYER & SOCIAL & PLANS & MOD
+  INFRA -.-> LITURGY & IDENTITY & PRAYER & SOCIAL
+  APP -. wires .-> LITURGY & IDENTITY & PRAYER & SOCIAL & PLANS & MOD
+
+  classDef kernel fill:#1f6feb,stroke:#0b3d91,color:#fff
+  classDef infra fill:#8250df,stroke:#4a2b8a,color:#fff
+  classDef mongo fill:#116149,stroke:#0a3d2e,color:#fff
+  class KERNEL kernel
+  class INFRA infra
+  class LITURGY,IDENTITY,PRAYER,SOCIAL,PLANS,MOD mongo

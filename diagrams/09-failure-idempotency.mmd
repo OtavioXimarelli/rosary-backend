@@ -1,0 +1,26 @@
+%% 09 — Failure & Idempotency (Mongo ClientSession)
+stateDiagram-v2
+  [*] --> BatchReceived
+  BatchReceived --> Validating : Bearer + schema OK
+  Validating --> Rejected400 : malformed
+  Validating --> Rejected422 : domain invalid
+  Validating --> TxStart : ClientSession transaction (Mongo)
+
+  state TxStart {
+    [*] --> PerDay
+    PerDay --> Created : Case A — not exists CONTRACT_SCRAPER.md:398
+    PerDay --> Unchanged : Case B — hash == incoming CONTRACT_SCRAPER.md:401
+    PerDay --> Updated : Case C — hash != incoming CONTRACT_SCRAPER.md:405
+    Created --> PerDay
+    Unchanged --> PerDay
+    Updated --> PerDay
+    PerDay --> Commit : all days done
+  }
+
+  Commit --> Response200 : 200 {SUCCESS, created, updated, unchanged} CONTRACT_SCRAPER.md:424
+  Response200 --> [*]
+
+  note right of Unchanged
+    WARNING + REVIEW_REQUIRED still persisted CONTRACT_SCRAPER.md:416
+    Single DB — one commit, one rollback
+  end note

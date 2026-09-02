@@ -1,0 +1,32 @@
+%% 06 — Public Reads (MongoDB only)
+sequenceDiagram
+  participant CLI as Client
+  participant BE as Backend
+  participant MG as MongoDB
+
+  CLI->>BE: GET /liturgy/today?timezone=America/Sao_Paulo&locale=pt-BR<br/>openapi/evangelizae-v1.openapi.yml:9
+  activate BE
+  BE->>BE: parse ZoneId, validate locale=pt-BR<br/>LiturgyService.java:82
+  BE->>BE: date = LocalDate.ofInstant(clock.instant(), zone) LiturgyService.java:43
+  BE->>MG: findById(date) liturgical_days<br/>single doc, embedded readings
+  alt found
+    MG-->>BE: LiturgicalDayDocument
+    BE-->>CLI: 200 DailyLiturgy source.freshness=LIVE
+  else not found
+    BE-->>CLI: 503 LITURGY_UNAVAILABLE GlobalExceptionHandler.java:24
+  end
+  deactivate BE
+
+  CLI->>BE: POST /social/follow {followeeId}<br/>JWT
+  activate BE
+  BE->>BE: JwtAuthFilter
+  BE->>MG: insert follows {followerId, followeeId}<br/>unique {followerId:1, followeeId:1}
+  alt duplicate
+    MG-->>BE: DuplicateKey
+    BE-->>CLI: 409 Conflict
+  else ok
+    MG-->>BE: ack
+    BE-->>CLI: 201 Created
+  end
+  deactivate BE
+  Note over BE,MG: Same MongoDB, same ClientSession for DeleteAccount.

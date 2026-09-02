@@ -1,0 +1,22 @@
+%% 04 — Hexagonal Slice (single paradigm, MongoDB)
+graph LR
+  subgraph HEX["Hexagon — any module (liturgy / identity / social) [MongoDB]"]
+    direction TB
+    DOM["DOMAIN<br/>pure Java, no Spring/Mongo"]
+    APP["APPLICATION<br/>use cases"]
+    PORTS["PORTS<br/>Repository interfaces"]
+    DOM --- APP
+    APP --- PORTS
+  end
+
+  IN["adapters/in<br/>REST controllers<br/>LiturgyController.java:12"] --> APP
+  PORTS --> OUT["adapters/out<br/>MongoDocument + Mapper<br/>Spring Data MongoDB<br/>ClientSession"]
+  OUT --> MONGO["MongoDB<br/>single URI, all collections"]
+
+  KERNEL["shared/kernel<br/>UserId, Clock, errors"] -.-> DOM & APP
+  INFRA["shared/infrastructure<br/>filters"] -.-> IN & OUT
+
+  classDef dom fill:#0a7a42,stroke:#055a30,color:#fff
+  classDef app fill:#1f6feb,stroke:#0b3d91,color:#fff
+  class DOM dom
+  class APP app

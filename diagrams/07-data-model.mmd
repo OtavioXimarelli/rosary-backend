@@ -1,0 +1,60 @@
+%% 07 — Data Model (ER — MongoDB Only)
+erDiagram
+  direction TB
+  LITURGICAL_DAYS ||--o{ LITURGICAL_DAY_VERSIONS : "history (Mongo)"
+
+  LITURGICAL_DAYS {
+    date DATE PK "_id, unique"
+    celebration OBJECT "name, type, liturgicalColor CONTRACT_SCRAPER.md:129/187"
+    liturgicalSeason OBJECT "name, week, liturgicalYear"
+    parts OBJECT "readings[] embedded, text XOR options CONTRACT_SCRAPER.md:145"
+    sources ARRAY "CNBB/VATICAN_NEWS, PRIMARY/VALIDATION CONTRACT_SCRAPER.md:159"
+    validation OBJECT "VALID/WARNING/REVIEW_REQUIRED CONTRACT_SCRAPER.md:217"
+    primaryContentHash TEXT "sha256 CONTRACT_SCRAPER.md:163"
+    lastVerifiedAt DATE
+  }
+  LITURGICAL_DAY_VERSIONS {
+    uuid UUID PK
+    liturgicalDate DATE FK
+    contentHash TEXT
+    payload OBJECT "canonical snapshot"
+  }
+
+  USERS ||--o{ PRAYER_COMPLETIONS : "has"
+  USERS ||--o{ REFRESH_SESSIONS : "has"
+  USERS ||--o{ FOLLOWS : "follows"
+  USERS ||--o{ LIKES : "likes"
+  USERS ||--o{ COMMENTS : "writes"
+
+  USERS {
+    uuid UUID PK "_id"
+    normalizedEmail TEXT "unique"
+    googleSub TEXT "unique sparse"
+    socialProfile OBJECT "bio, avatarUrl — no migration"
+  }
+  PRAYER_COMPLETIONS {
+    uuid UUID PK
+    userId UUID FK "unique userId+localDate"
+    localDate DATE
+  }
+  FOLLOWS {
+    uuid UUID PK
+    followerId UUID FK "unique follower+followee"
+    followeeId UUID FK
+  }
+  LIKES {
+    uuid UUID PK
+    userId UUID FK "unique user+target"
+    targetType TEXT
+  }
+  COMMENTS {
+    uuid UUID PK
+    userId UUID FK
+    targetType TEXT
+    text TEXT
+  }
+  REFRESH_SESSIONS {
+    uuid UUID PK
+    userId UUID FK
+    tokenHash TEXT "unique"
+  }
